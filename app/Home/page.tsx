@@ -1,4 +1,4 @@
-"use client"; // Ensure this component is treated as a client component
+"use client"; 
 
 import { Box } from '@chakra-ui/react';
 import React, { useEffect } from 'react'; // Import useEffect
@@ -12,6 +12,7 @@ export default function Page() {
   useEffect(() => {
     const email = localStorage.getItem("email"); // Get the email from localStorage
     if (!email) {
+      router.push("/Home"); // This line is likely unnecessary; keep only one redirect
       router.push("/home"); // Redirect to the login page if no email is found
     }
   }, [router]);
