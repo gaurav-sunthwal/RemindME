@@ -26,6 +26,9 @@ import Image from "next/image";
 // img import
 
 import logo from "@/Img/logo.png";
+import { signOut } from "firebase/auth";
+import { auth } from "../Auth/firebaseConfig";
+import { useRouter } from "next/navigation";
 
 interface Props {
   children: React.ReactNode;
@@ -56,6 +59,17 @@ export default function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { toggleColorMode } = useColorMode();
   const { colorMode } = useColorMode(); // Get the color mode
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      localStorage.removeItem("user"); // Optionally remove user data from localStorage
+      router.push("/"); // Redirect to login page after logout
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
   return (
     <>
       <Box bg={useColorModeValue("gray.100", "gray.900")} px={4}>
@@ -102,7 +116,7 @@ export default function Navbar() {
                 <MenuItem>
                   <FormControl display="flex" alignItems="center">
                     <FormLabel htmlFor="dark_mode" mb="0">
-                      Enable { colorMode === "light" ? "Dark" : "Light"} Mode?
+                      Enable {colorMode === "light" ? "Dark" : "Light"} Mode?
                     </FormLabel>
                     <Switch
                       id="dark_mode"
@@ -113,7 +127,9 @@ export default function Navbar() {
                   </FormControl>
                 </MenuItem>
                 <MenuDivider />
-                <MenuItem>Log Out</MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  Log Out 
+                </MenuItem>
               </MenuList>
             </Menu>
           </Flex>
@@ -129,7 +145,6 @@ export default function Navbar() {
           </Box>
         ) : null}
       </Box>
-
     </>
   );
 }

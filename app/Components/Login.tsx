@@ -13,7 +13,16 @@ import {
   useColorModeValue,
   HStack,
   Box,
+  useMediaQuery,
+  Divider,
 } from "@chakra-ui/react";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "firebase/auth"; // Import Firebase functions
+import { useToast } from "@chakra-ui/react";
+import { auth } from "../Auth/firebaseConfig";
+import { useRouter } from "next/navigation";
 
 interface CardProps {
   formBackground: string;
@@ -24,31 +33,77 @@ interface CardProps {
   setEmail: (email: string) => void;
   password: string;
   setPassword: (password: string) => void;
-  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void; // Update to accept an event
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void; // Update this line to include the event argument
 }
 
 const Login = () => {
   const { toggleColorMode } = useColorMode();
   const formBackground = useColorModeValue("gray.100", "gray.700");
-  const [isSignIn, setIsSignIn] = useState(true); // New state for toggling between Sign In and Sign Up
-  const [email, setEmail] = useState("gaurav@gmail.com"); // State for email input
-  const [pasword, setPassword] = useState("gaurav"); // State for email input
+  const [isSignIn, setIsSignIn] = useState(true); // State for toggling between Sign In and Sign Up
+  const [email, setEmail] = useState(""); // State for email input
+  const [password, setPassword] = useState(""); // State for password input
 
+  const toast = useToast(); // Chakra UI toast for notifications
+  const router = useRouter();
   const handleToggle = () => {
     setIsSignIn(!isSignIn); // Toggle between Sign In and Sign Up
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Prevent the form from reloading the page
-    // Save user details to local storage
-    const userDetails = {
-      email: email, // Use the actual email input value
-      // Add other user details as needed
-    };
-    localStorage.setItem("user", JSON.stringify(userDetails));
-
-    // Redirect to home page
-    window.location.href = "/Home"; // Change to your actual home page route
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); 
+    if (isSignIn) {
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+        localStorage.setItem("user", JSON.stringify({ email: user.email }));
+        router.push("/Home"); // Using router instead of window.location
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${user.email}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      } catch (error) {
+        toast({
+          title: "Error Logging In",
+          description: error instanceof Error ? error.message : "Unknown error",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } else {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+        localStorage.setItem("user", JSON.stringify({ email: user.email }));
+        router.push("/Home"); // Using router instead of window.location
+        toast({
+          title: "Account Created",
+          description: `Account created for ${user.email}`,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      } catch (error) {
+        toast({
+          title: "Error Signing Up",
+          description: error instanceof Error ? error.message : "Unknown error",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
   };
 
   return (
@@ -56,12 +111,12 @@ const Login = () => {
       formBackground={formBackground}
       toggleColorMode={toggleColorMode}
       isSignIn={isSignIn}
-      onToggle={handleToggle} // Pass the toggle function
-      email={email} // Pass email state
-      setEmail={setEmail} // Pass setEmail function
-      password={pasword} // Pass email state
-      setPassword={setPassword} // Pass setEmail function
-      handleSubmit={handleSubmit} // Pass submit function
+      onToggle={handleToggle}
+      email={email}
+      setEmail={setEmail}
+      password={password}
+      setPassword={setPassword}
+      handleSubmit={handleSubmit}
     />
   );
 };
@@ -77,6 +132,7 @@ function FormCard({
   password,
   setPassword,
 }: CardProps) {
+  const [isLargerThan800] = useMediaQuery('(min-width: 800px)')
   return (
     <>
       <Flex h="100vh" w={"100%"} alignItems="center" justifyContent="center">
@@ -86,7 +142,7 @@ function FormCard({
           p={12}
           borderRadius={8}
           boxShadow="lg"
-          w={"50%"}
+          w={"80%"}
         >
           <Heading mb={6}>{isSignIn ? "Log In" : "Sign Up"}</Heading>
           <form onSubmit={handleSubmit}>
@@ -104,8 +160,8 @@ function FormCard({
               type="email"
               variant="filled"
               mb={3}
-              value={email} // Bind the input value to state
-              onChange={(e) => setEmail(e.target.value)} // Update state on change
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
             <Input
@@ -113,16 +169,15 @@ function FormCard({
               type="password"
               variant="filled"
               mb={6}
-              value={password} // Bind the input value to state
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
             <Button colorScheme="teal" mb={8} type="submit">
-              {isSignIn ? "Log In" : "Sign Up"}{" "}
-              {/* Change button text based on state */}
+              {isSignIn ? "Log In" : "Sign Up"}
             </Button>
           </form>
-          <HStack w={"100%"} justifyContent={"space-between"}>
+          <HStack w={"100%"} justifyContent={"space-between"} wrap={"wrap"}>
             <Box>
               <Button variant="link" onClick={onToggle}>
                 {isSignIn
@@ -130,6 +185,7 @@ function FormCard({
                   : "Already have an account? Sign In"}
               </Button>
             </Box>
+            {isLargerThan800 ? "": <Divider />  }
             <Box>
               <FormControl display="flex" alignItems="center">
                 <FormLabel htmlFor="dark_mode" mb="0">
