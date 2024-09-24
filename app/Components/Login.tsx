@@ -22,6 +22,8 @@ interface CardProps {
   onToggle: () => void;
   email: string;
   setEmail: (email: string) => void;
+  password: string;
+  setPassword: (password: string) => void;
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void; // Update to accept an event
 }
 
@@ -29,7 +31,8 @@ const Login = () => {
   const { toggleColorMode } = useColorMode();
   const formBackground = useColorModeValue("gray.100", "gray.700");
   const [isSignIn, setIsSignIn] = useState(true); // New state for toggling between Sign In and Sign Up
-  const [email, setEmail] = useState(""); // State for email input
+  const [email, setEmail] = useState("gaurav@gmail.com"); // State for email input
+  const [pasword, setPassword] = useState("gaurav"); // State for email input
 
   const handleToggle = () => {
     setIsSignIn(!isSignIn); // Toggle between Sign In and Sign Up
@@ -56,6 +59,8 @@ const Login = () => {
       onToggle={handleToggle} // Pass the toggle function
       email={email} // Pass email state
       setEmail={setEmail} // Pass setEmail function
+      password={pasword} // Pass email state
+      setPassword={setPassword} // Pass setEmail function
       handleSubmit={handleSubmit} // Pass submit function
     />
   );
@@ -69,6 +74,8 @@ function FormCard({
   email,
   setEmail,
   handleSubmit,
+  password,
+  setPassword,
 }: CardProps) {
   return (
     <>
@@ -106,6 +113,8 @@ function FormCard({
               type="password"
               variant="filled"
               mb={6}
+              value={password} // Bind the input value to state
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
             <Button colorScheme="teal" mb={8} type="submit">
