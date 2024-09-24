@@ -22,8 +22,6 @@ import {
 import { useState, useEffect } from "react";
 import { CiMenuKebab } from "react-icons/ci";
 
-
-
 import {
   collection,
   addDoc,
@@ -46,12 +44,16 @@ const AddTask = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isEditing, setIsEditing] = useState<{ id: string; text: string } | null>(null);
+  const [isEditing, setIsEditing] = useState<{
+    id: string;
+    text: string;
+  } | null>(null);
   const formBackground = useColorModeValue("gray.100", "gray.700");
   const inputBg = useColorModeValue("white", "gray.600");
   const completedBg = useColorModeValue("white", "gray.700");
 
-  const userEmail = JSON.parse(localStorage.getItem("user") || "{}").email || "";
+  const userEmail =
+    JSON.parse(localStorage.getItem("user") || "{}").email || "";
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -139,14 +141,21 @@ const AddTask = () => {
     try {
       const taskDoc = doc(db, "tasks", id);
       await updateDoc(taskDoc, { text: newText });
-      setTasks(tasks.map((task) => (task.id === id ? { ...task, text: newText } : task)));
+      setTasks(
+        tasks.map((task) =>
+          task.id === id ? { ...task, text: newText } : task
+        )
+      );
       setIsEditing(null);
     } catch (error) {
       console.error("Error updating task: ", error);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, id: string) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    id: string
+  ) => {
     if (e.key === "Enter" && isEditing) {
       handleEditTask(id, isEditing.text);
     }
@@ -232,14 +241,18 @@ const AddTask = () => {
               >
                 <Checkbox
                   isChecked={task.isCompleted}
-                  onChange={() => handleToggleCompleted(task.id, task.isCompleted)}
+                  onChange={() =>
+                    handleToggleCompleted(task.id, task.isCompleted)
+                  }
                   textDecoration={task.isCompleted ? "line-through" : "none"}
                   colorScheme="teal"
                 >
                   {isEditing?.id === task.id ? (
                     <Input
                       value={isEditing.text}
-                      onChange={(e) => setIsEditing({ id: task.id, text: e.target.value })}
+                      onChange={(e) =>
+                        setIsEditing({ id: task.id, text: e.target.value })
+                      }
                       onBlur={() => handleEditTask(task.id, isEditing.text)}
                       onKeyDown={(e) => handleKeyDown(e, task.id)}
                       autoFocus
@@ -249,12 +262,23 @@ const AddTask = () => {
                   )}
                 </Checkbox>
                 <Menu>
-                  <MenuButton as={IconButton} icon={<CiMenuKebab />} aria-label="Options" />
+                  <MenuButton
+                    as={IconButton}
+                    icon={<CiMenuKebab />}
+                    aria-label="Options"
+                  />
                   <MenuList>
-                    <MenuItem onClick={() => setIsEditing({ id: task.id, text: task.text })}>
+                    <MenuItem
+                      onClick={() =>
+                        setIsEditing({ id: task.id, text: task.text })
+                      }
+                    >
                       Edit
                     </MenuItem>
-                    <MenuItem onClick={() => handleDeleteTask(task.id)} color="red.500">
+                    <MenuItem
+                      onClick={() => handleDeleteTask(task.id)}
+                      color="red.500"
+                    >
                       Delete
                     </MenuItem>
                   </MenuList>
