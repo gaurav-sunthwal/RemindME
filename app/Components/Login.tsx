@@ -59,8 +59,10 @@ const Login = () => {
           password
         );
         const user = userCredential.user;
-        localStorage.setItem("user", JSON.stringify({ email: user.email }));
-        router.push("/home"); // Using router instead of window.location
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("user", JSON.stringify({ email: user.email }));
+        }
+        router.push("/Home"); // Using router instead of window.location
         toast({
           title: "Login Successful",
           description: `Welcome back, ${user.email}`,
@@ -85,8 +87,10 @@ const Login = () => {
           password
         );
         const user = userCredential.user;
-        localStorage.setItem("user", JSON.stringify({ email: user.email }));
-        router.push("/home"); // Using router instead of window.location
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("user", JSON.stringify({ email: user.email }));
+        }
+        router.push("/Home"); // Using router instead of window.location
         toast({
           title: "Account Created",
           description: `Account created for ${user.email}`,

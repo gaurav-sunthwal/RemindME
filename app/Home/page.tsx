@@ -1,14 +1,18 @@
 "use client";
 
 import { Box } from "@chakra-ui/react";
-import React, { useEffect } from "react"; // Import useEffect
-import { useRouter } from "next/navigation"; // Import useRouter for navigation
+
 import Navbar from "../Components/Navbar";
-import AddTask from "../Components/AddTask";
+import dynamic from "next/dynamic";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+// import AddTask from "../Components/AddTask";
+const AddTask = dynamic(() => import("../Components/AddTask"), {
+  ssr: false,
+});
 
 export default function Page() {
   const router = useRouter();
-
   useEffect(() => {
     console.log("====================================");
     console.log(window.location.href.includes("/Home"));

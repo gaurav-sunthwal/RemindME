@@ -43,7 +43,7 @@ const AddTask = () => {
   const inputBg = useColorModeValue("white", "gray.600");
   const completedBg = useColorModeValue("white", "gray.700");
 
-  const userEmail = JSON.parse(localStorage.getItem("user") || "{}").email;
+  const userEmail = JSON.parse(localStorage.getItem("user") || "{}").email || "";
 
   useEffect(() => {
     const fetchTasks = async () => {
