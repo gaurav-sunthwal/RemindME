@@ -69,6 +69,7 @@ const AddTask = () => {
 
     if (userEmail) {
       fetchTasks();
+      
     }
   }, [userEmail]);
 
