@@ -15,6 +15,8 @@ import {
   Box,
   useMediaQuery,
   Divider,
+  InputGroup,
+  InputRightElement,
 } from "@chakra-ui/react";
 import {
   signInWithEmailAndPassword,
@@ -50,7 +52,7 @@ const Login = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); 
+    e.preventDefault();
     if (isSignIn) {
       try {
         const userCredential = await signInWithEmailAndPassword(
@@ -85,7 +87,7 @@ const Login = () => {
           password
         );
         const user = userCredential.user;
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           localStorage.setItem("user", JSON.stringify({ email: user.email }));
         }
         router.push("/home"); // Using router instead of window.location
@@ -134,7 +136,9 @@ function FormCard({
   password,
   setPassword,
 }: CardProps) {
-  const [isLargerThan800] = useMediaQuery('(min-width: 800px)')
+  const [isLargerThan800] = useMediaQuery("(min-width: 800px)");
+  const [show, setShow] = React.useState(false)
+  const handleClick = () => setShow(!show)
   return (
     <>
       <Flex h="100vh" w={"100%"} alignItems="center" justifyContent="center">
@@ -166,15 +170,22 @@ function FormCard({
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <Input
-              placeholder="**********"
-              type="password"
-              variant="filled"
-              mb={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <InputGroup size="md">
+              <Input
+                placeholder="**********"
+                type={show ? 'text' : 'password'}
+                variant="filled"
+                mb={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <InputRightElement width="4.5rem">
+                <Button h="1.75rem" size="sm" onClick={handleClick}>
+                  {show ? "Hide" : "Show"}
+                </Button>
+              </InputRightElement>
+            </InputGroup>
             <Button colorScheme="teal" mb={8} type="submit">
               {isSignIn ? "Log In" : "Sign Up"}
             </Button>
@@ -187,7 +198,7 @@ function FormCard({
                   : "Already have an account? Sign In"}
               </Button>
             </Box>
-            {isLargerThan800 ? "": <Divider />  }
+            {isLargerThan800 ? "" : <Divider />}
             <Box>
               <FormControl display="flex" alignItems="center">
                 <FormLabel htmlFor="dark_mode" mb="0">

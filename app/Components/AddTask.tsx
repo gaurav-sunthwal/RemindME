@@ -14,9 +14,14 @@ import {
   Text,
   IconButton,
   Spinner,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { CiMenuKebab } from "react-icons/ci";
+
 import {
   collection,
   addDoc,
@@ -39,6 +44,7 @@ const AddTask = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState<{ id: string; text: string } | null>(null);
   const formBackground = useColorModeValue("gray.100", "gray.700");
   const inputBg = useColorModeValue("white", "gray.600");
   const completedBg = useColorModeValue("white", "gray.700");
@@ -69,7 +75,6 @@ const AddTask = () => {
 
     if (userEmail) {
       fetchTasks();
-      
     }
   }, [userEmail]);
 
@@ -77,23 +82,17 @@ const AddTask = () => {
     e.preventDefault();
     if (!newTask || !userEmail) return;
 
-    // Create a temporary task for instant UI update
     const tempTask = {
       id: `temp-${Date.now()}`,
       text: newTask,
       isCompleted: false,
     };
 
-    // Update the UI immediately with the new task
     setTasks((prevTasks) => [...prevTasks, tempTask]);
-
-    setNewTask(""); // Clear input
-
-    // Store the task in Firebase in the background
+    setNewTask("");
     addTaskToFirebase(tempTask);
   };
 
-  // Background function to store the task in Firebase
   const addTaskToFirebase = async (tempTask: Task) => {
     try {
       const docRef = await addDoc(collection(db, "tasks"), {
@@ -101,8 +100,6 @@ const AddTask = () => {
         isCompleted: tempTask.isCompleted,
         email: userEmail,
       });
-
-      // After Firebase is successful, update the temp task's ID with the correct one
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task.id === tempTask.id ? { ...task, id: docRef.id } : task
@@ -110,9 +107,9 @@ const AddTask = () => {
       );
     } catch (error) {
       console.error("Error adding task: ", error);
-      // Handle error (optionally, you can remove the task from state if it fails)
     }
   };
+
   const handleToggleCompleted = async (id: string, isCompleted: boolean) => {
     try {
       const taskDoc = doc(db, "tasks", id);
@@ -133,6 +130,23 @@ const AddTask = () => {
       setTasks(tasks.filter((task) => task.id !== id));
     } catch (error) {
       console.error("Error deleting task: ", error);
+    }
+  };
+
+  const handleEditTask = async (id: string, newText: string) => {
+    try {
+      const taskDoc = doc(db, "tasks", id);
+      await updateDoc(taskDoc, { text: newText });
+      setTasks(tasks.map((task) => (task.id === id ? { ...task, text: newText } : task)));
+      setIsEditing(null);
+    } catch (error) {
+      console.error("Error updating task: ", error);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, id: string) => {
+    if (e.key === "Enter" && isEditing) {
+      handleEditTask(id, isEditing.text);
     }
   };
 
@@ -216,22 +230,33 @@ const AddTask = () => {
               >
                 <Checkbox
                   isChecked={task.isCompleted}
-                  onChange={() =>
-                    handleToggleCompleted(task.id, task.isCompleted)
-                  }
+                  onChange={() => handleToggleCompleted(task.id, task.isCompleted)}
                   textDecoration={task.isCompleted ? "line-through" : "none"}
                   colorScheme="teal"
                 >
-                  {task.text}
+                  {isEditing?.id === task.id ? (
+                    <Input
+                      value={isEditing.text}
+                      onChange={(e) => setIsEditing({ id: task.id, text: e.target.value })}
+                      onBlur={() => handleEditTask(task.id, isEditing.text)}
+                      onKeyDown={(e) => handleKeyDown(e, task.id)}
+                      autoFocus
+                    />
+                  ) : (
+                    task.text
+                  )}
                 </Checkbox>
-                <IconButton
-                  icon={<DeleteIcon />}
-                  aria-label="Delete task"
-                  onClick={() => handleDeleteTask(task.id)}
-                  colorScheme="red"
-                  variant="outline"
-                  size="sm"
-                />
+                <Menu>
+                  <MenuButton as={IconButton} icon={<CiMenuKebab />} aria-label="Options" />
+                  <MenuList>
+                    <MenuItem onClick={() => setIsEditing({ id: task.id, text: task.text })}>
+                      Edit
+                    </MenuItem>
+                    <MenuItem onClick={() => handleDeleteTask(task.id)} color="red.500">
+                      Delete
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
               </Flex>
             ))
           )}

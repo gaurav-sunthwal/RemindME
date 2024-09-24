@@ -22,13 +22,11 @@ import {
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import Image from "next/image";
-
-// img import
-
 import logo from "@/Img/logo.png";
 import { signOut } from "firebase/auth";
 import { auth } from "../Auth/firebaseConfig";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface Props {
   children: React.ReactNode;
@@ -58,18 +56,26 @@ const NavLink = (props: Props) => {
 export default function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { toggleColorMode } = useColorMode();
-  const { colorMode } = useColorMode(); // Get the color mode
+  const { colorMode } = useColorMode();
   const router = useRouter();
+  const [userEmail, setUserEmail] = useState<string | null>(null); // State for user email
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Sign out the user
+      await signOut(auth);
       localStorage.removeItem("user"); // Optionally remove user data from localStorage
+      setUserEmail(null); // Clear email state on logout
       router.push("/"); // Redirect to login page after logout
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
+
+  useEffect(() => {
+    const email = JSON.parse(localStorage.getItem("user") || "{}").email || null; // Retrieve email from localStorage
+    setUserEmail(email); // Set the email in state
+  }, []);
+
   return (
     <>
       <Box bg={useColorModeValue("gray.100", "gray.900")} px={4}>
@@ -112,7 +118,7 @@ export default function Navbar() {
                 />
               </MenuButton>
               <MenuList>
-                <MenuItem>Link 1</MenuItem>
+                <MenuItem>{userEmail ? `Logged in as: ${userEmail}` : "Not logged in"}</MenuItem>
                 <MenuItem>
                   <FormControl display="flex" alignItems="center">
                     <FormLabel htmlFor="dark_mode" mb="0">
@@ -127,9 +133,7 @@ export default function Navbar() {
                   </FormControl>
                 </MenuItem>
                 <MenuDivider />
-                <MenuItem onClick={handleLogout}>
-                  Log Out 
-                </MenuItem>
+                <MenuItem onClick={handleLogout}>Log Out</MenuItem>
               </MenuList>
             </Menu>
           </Flex>
