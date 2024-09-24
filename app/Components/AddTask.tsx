@@ -46,45 +46,52 @@ const AddTask = () => {
   const userEmail = JSON.parse(localStorage.getItem("user") || "{}").email;
 
   useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const q = query(
+          collection(db, "tasks"),
+          where("email", "==", userEmail)
+        );
+        const querySnapshot = await getDocs(q);
+        const fetchedTasks = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          text: doc.data().text,
+          isCompleted: doc.data().isCompleted,
+        }));
+        setTasks(fetchedTasks);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (userEmail) {
       fetchTasks();
     }
   }, [userEmail]);
 
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const q = query(collection(db, "tasks"), where("email", "==", userEmail));
-      const querySnapshot = await getDocs(q);
-      const fetchedTasks: Task[] = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        text: doc.data().text,
-        isCompleted: doc.data().isCompleted,
-      }));
-      setTasks(fetchedTasks);
-    } catch (error) {
-      console.error("Error fetching tasks: ", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newTask || !userEmail) return;
-  
+
     // Create a temporary task for instant UI update
-    const tempTask = { id: `temp-${Date.now()}`, text: newTask, isCompleted: false };
-    
+    const tempTask = {
+      id: `temp-${Date.now()}`,
+      text: newTask,
+      isCompleted: false,
+    };
+
     // Update the UI immediately with the new task
     setTasks((prevTasks) => [...prevTasks, tempTask]);
-    
+
     setNewTask(""); // Clear input
-  
+
     // Store the task in Firebase in the background
     addTaskToFirebase(tempTask);
   };
-  
+
   // Background function to store the task in Firebase
   const addTaskToFirebase = async (tempTask: Task) => {
     try {
@@ -93,7 +100,7 @@ const AddTask = () => {
         isCompleted: tempTask.isCompleted,
         email: userEmail,
       });
-  
+
       // After Firebase is successful, update the temp task's ID with the correct one
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
